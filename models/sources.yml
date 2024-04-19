@@ -1,0 +1,22 @@
+sources:
+  - name: pandoradb
+    database: de  
+    schema: pandoradb
+    tables:
+      - name: fSportsbookTokenCampaign
+      - name: mSportsbookTokenCampaignStatus
+      - name: mSportsbookTokenCampaignType
+      - name: uUser
+      - name: mCampaignIntent
+
+  - name: masterconfigdb
+    database: de  
+    schema: masterconfigdb
+    tables:
+      - name: dim_company_metadata
+
+  - name: kaizen_wars
+    database: de  
+    schema: kaizen_wars
+    tables:
+      - name: DIM_Exchange_Rate_euro      
