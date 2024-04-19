@@ -1,20 +1,17 @@
-version: 2
-
 models:
-    - name: my_first_dbt_model
-      description: "A starter dbt model"
-      columns:
-          - name: id
-            description: "The primary key for this table"
-            tests:
-                - unique
-                - not_null
-
-    - name: my_second_dbt_model
-      description: "A starter dbt model"
-      columns:
-          - name: id
-            description: "The primary key for this table"
-            tests:
-                - unique
-                - not_null
+  - name: pandora_campaigns
+    description: "A starter dbt model"
+    columns:
+      - name: CampaignID
+        description: "Campaign ID sourced from fSportsbookTokenCampaign.fstcCampaignID"
+        tests:
+          - unique
+          - not_null
+      - name: CampaignID
+        description: "Campaign ID sourced from fSportsbookTokenCampaign.fstcCampaignID"
+      - name: CampaignName
+        description: "Campaign Name sourced from fSportsbookTokenCampaign.fstcCampaignName"
+      - name: CampaignStartTime
+        description: "Campaign Start time sourced from fSportsbookTokenCampaign.fstcStartTime"
+      - name: CampaignEndTime
+        description: "Campaign End time sourced from fSportsbookTokenCampaign.CampaignEndTime"
