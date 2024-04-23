@@ -21,11 +21,11 @@ select fstc.fstcCampaignID                                                      
 from        {{ source('pandoradb', 'fSportsbookTokenCampaign') }}       as fstc
 inner join	{{ source('pandoradb', 'mSportsbookTokenCampaignStatus') }} as mtcs on fstc.fstcCampaignStatusID    = mtcs.mtcsCampaignStatusID
 inner join	{{ source('pandoradb', 'mSportsbookTokenCampaignType') }}   as mtct on fstc.fstcCampaignTypeID	    = mtct.mtctCampaignTypeID
-left  join  {{ source('masterconfigdb', 'dim_company_metadata') }}      as com  on com.CompanyId            = fstc.fstcCompanyID
-left  join  {{ source('kaizen_wars', 'DIM_Exchange_Rate_euro') }}       as euro on com.CurrencyId           = euro.currencyId
+left  join  {{ source('masterconfigdb', 'dim_company_metadata') }}      as com  on com.CompanyId                = fstc.fstcCompanyID
+left  join  {{ source('kaizen_wars', 'DIM_Exchange_Rate_euro') }}       as euro on com.CurrencyId               = euro.currencyId
                                                                                 and  euro.Date                  = fstc.utc_date
 left join	{{ source('pandoradb', 'uUser') }}                          as pusr ON fstc.fstcCreatedBy			= pusr.userUserID
-left join   {{ source('pandoradb', 'mCampaignIntent') }}                as itnt ON fstc.fstcCampaignIntentID  = itnt.mcinCampaignIntentID
+left join   {{ source('pandoradb', 'mCampaignIntent') }}                as itnt ON fstc.fstcCampaignIntentID    = itnt.mcinCampaignIntentID
 where  fstc.fstcCampaignTypeID = 2 -- fullbet
 or    (       fstc.fstcCampaignTypeID = 1 -- freebet  
         and   fstc.fstcCampaignID >= 10000
