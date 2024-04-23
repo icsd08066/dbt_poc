@@ -8,6 +8,7 @@ sources:
       - name: mSportsbookTokenCampaignType
       - name: uUser
       - name: mCampaignIntent
+      - name: fSportsbookToken
 
   - name: masterconfigdb
     database: de  
@@ -19,4 +20,5 @@ sources:
     database: de  
     schema: kaizen_wars
     tables:
-      - name: DIM_Exchange_Rate_euro      
+      - name: DIM_Exchange_Rate_euro
+      - name: FACT_Pandora_FreeBetToken
