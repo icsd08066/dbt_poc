@@ -4,7 +4,7 @@ models:
     columns:
       - name: CampaignID
         description: "This is the pandora campaign id"
-    tests:
-      - unique:
-          tags: ["fSportsbookTokenCampaign.fstcCampaignID"]
-      - not_null
+        tests:
+          - unique
+          - not_null
+        tags: ["fSportsbookTokenCampaign.fstcCampaignID"]
