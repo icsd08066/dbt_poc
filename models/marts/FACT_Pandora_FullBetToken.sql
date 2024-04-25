@@ -1,9 +1,7 @@
 {{ config(
     materialized='incremental',
-    file_format='delta',
     partition_by=['utc_date'],
-    unique_key="FullbetToken||'-'||FullbetCustomerID",
-    incremental_strategy='merge'
+    file_format='delta'
 ) }}
 
 

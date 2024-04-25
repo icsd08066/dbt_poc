@@ -5,15 +5,15 @@
 ) }}
 
 with part_prun as (
-    SELECT  DISTINCT fsbt.utc_date
-    FROM       {{ source('pandoradb', 'fSportsbookToken') }}             AS fsbt
-    INNER JOIN {{ source('pandoradb', 'fSportsbookTokenCampaign') }}    AS fstc ON  fstcCampaignID = fsbtSportsbookTokenCampaignID
-    WHERE  ((       fstcCampaignTypeID                  = 1
-          AND   fsbtSportsbookTokenID               >= 20000000
-          AND   fsbtSportsbookTokenCampaignID       >= 10000
+    select  DISTINCT fsbt.utc_date
+    from       {{ source('pandoradb', 'fSportsbookToken') }}             as fsbt
+    inner join {{ source('pandoradb', 'fSportsbookTokenCampaign') }}    as fstc on  fstcCampaignID = fsbtSportsbookTokenCampaignID
+    where  ((       fstcCampaignTypeID                  = 1
+          and   fsbtSportsbookTokenID               >= 20000000
+          and   fsbtSportsbookTokenCampaignID       >= 10000
         )
         or  (fstcCampaignTypeID                  = 2 ))    
-        AND ifnull(fsbtLastUpdated,fsbtCreated) >= ({{ target_date() }})
+        and ifnull(fsbtLastUpdated,fsbtCreated) >= ({{ target_date() }})
 )
 
 ,cte1 as (
@@ -32,9 +32,9 @@ select fsbtSportsbookTokenID
       ,ifnull(fsbtLastUpdated,fsbtCreated) as fsbtLastUpdated
       ,ifnull(abs(sum(fsttAmount)),0) as PlayedAmount
       ,fsts.comp_part
-from       de.PandoraDB.fSportsbookToken             as fsts
-inner join de.PandoraDB.fSportsbookTokenCampaign     as fstc on fstc.fstcCampaignID		= fsts.fsbtSportsbookTokenCampaignID and fstc.comp_part = fsts.comp_part
-inner join part_prun as prun on prun.utc_date = fsts.utc_date
+from       {{ source('pandoradb', 'fSportsbookToken') }}            as fsts
+inner join {{ source('pandoradb', 'fSportsbookTokenCampaign') }}    as fstc on fstc.fstcCampaignID  = fsts.fsbtSportsbookTokenCampaignID and fstc.comp_part = fsts.comp_part
+inner join part_prun                                                as prun on prun.utc_date        = fsts.utc_date
 left join  de.PandoraDB.fSportsbookTokenTransaction  as fstt on fsts.fsbtSportsbookTokenID = fstt.fsttSportsbookTokenID         and fsts.comp_part = fstt.comp_part
 left join  de.PandoraDB.mSportsbookTokenStatus       as msts on fsts.fsbtTokenStatusID     = msts.mstsTokenStatusID
 where 
@@ -70,9 +70,9 @@ group by  fsbtSportsbookTokenID
              , cte1.fstcCampaignTypeID
              , fstt.fsttBetID
              , fstt.utc_date  
-      FROM       de.PandoraDB.fSportsbookToken            AS fSTS
-      inner join cte1                                          ON fSTS.fsbtSportsbookTokenID = cte1.fsbtSportsbookTokenID AND fSTS.comp_part = cte1.comp_part 
-      left  join de.PandoraDB.fSportsbookTokenTransaction AS fSTT ON fSTS.fsbtSportsbookTokenID = fSTT.fsttSportsbookTokenID AND fSTS.comp_part = fSTT.comp_part 
+      from       {{ source('pandoradb', 'fSportsbookToken') }}  as fSTS
+      inner join cte1                                                   on fSTS.fsbtSportsbookTokenID = cte1.fsbtSportsbookTokenID and fSTS.comp_part = cte1.comp_part 
+      left  join de.PandoraDB.fSportsbookTokenTransaction       as fSTT on fSTS.fsbtSportsbookTokenID = fSTT.fsttSportsbookTokenID and fSTS.comp_part = fSTT.comp_part 
       group by    fsts.fsbtSportsbookTokenID
                 , fstt.fsttBetID
                 , fsts.fsbtCustomerID 
@@ -81,45 +81,45 @@ group by  fsbtSportsbookTokenID
                 , cte1.fstcCampaignTypeID
   )
   , cte_winnings as (
-      SELECT   cte.fsbtSportsbookTokenID
+      select   cte.fsbtSportsbookTokenID
              , cte.fsbtCustomerID
              , cte.fstcCampaignTypeID
-             , SUM(CASE WHEN fstcCampaignTypeID = 1 THEN  SportBetSettled_Bet_Bonus_Winnings                                                                         END) AS freebet_winnings
-             , SUM(CASE WHEN fstcCampaignTypeID = 1 THEN  SportBetSettled_Bet_Bonus_Winnings_bccy_erc                                                                END) AS freebet_winningsEuro
-             , CAST(SUM(CASE WHEN fstcCampaignTypeID = 2 THEN  SportBetSettled_winnings    + SportBetSettled_cash_out_win_bccy_erc / euro.rateLast END) AS DECIMAL(38,7)) AS fullbet_winnings
-             , SUM(CASE WHEN fstcCampaignTypeID = 2 THEN  SportBetSettled_winnings_bccy_erc  +  SportBetSettled_cash_out_win_bccy_erc        END)                         AS fullbet_winningsEuro
-      FROM       de.kaizen_wars.fact_sportbetsettled AS sbs 
-      INNER JOIN cte2                             AS cte ON fsttBetID      = abs(sbs.sportbetsettled_bet_ID)
-                                                        AND fsbtCustomerID = sbs.sportbetsettled_Customer_ID
-      LEFT JOIN de.KAIZEN_WArs.DIM_Exchange_Rate_euro euro ON sbs.SportBetSettled_Currency_ID   = euro.currencyId
-                                                        AND euro.Date                         = sbs.utc_date
-      WHERE      sbs.sportbetsettled_status = 'A'                  
-      AND       sbs.utc_date BETWEEN (SELECT min(utc_date) FROM cte2) AND (SELECT date_add(max(utc_date), 30) FROM cte2)
-      GROUP BY  cte.fsbtSportsbookTokenID
+             , sum(case when fstcCampaignTypeID = 1 then  SportBetSettled_Bet_Bonus_Winnings                                                                         end) as freebet_winnings
+             , sum(case when fstcCampaignTypeID = 1 then  SportBetSettled_Bet_Bonus_Winnings_bccy_erc                                                                end) as freebet_winningsEuro
+             , cast(sum(case when fstcCampaignTypeID = 2 then  SportBetSettled_winnings    + SportBetSettled_cash_out_win_bccy_erc / euro.rateLast end) as DECIMAL(38,7)) as fullbet_winnings
+             , sum(case when fstcCampaignTypeID = 2 then  SportBetSettled_winnings_bccy_erc  +  SportBetSettled_cash_out_win_bccy_erc        end)                         as fullbet_winningsEuro
+      from       de.kaizen_wars.fact_sportbetsettled as sbs 
+      inner join cte2                             as cte on fsttBetID      = abs(sbs.sportbetsettled_bet_ID)
+                                                        and fsbtCustomerID = sbs.sportbetsettled_Customer_ID
+      LEFT JOIN {{ source('kaizen_wars', 'DIM_Exchange_Rate_euro') }}  euro on sbs.SportBetSettled_Currency_ID   = euro.currencyId
+                                                        and euro.Date                         = sbs.utc_date
+      where      sbs.sportbetsettled_status = 'A'                  
+      and       sbs.utc_date BETWEEN (select min(utc_date) from cte2) and (select date_add(max(utc_date), 30) from cte2)
+      group by  cte.fsbtSportsbookTokenID
               , cte.fsbtCustomerID
               , cte.fstcCampaignTypeID
   )
-  SELECT           cte1.fsbtSportsbookTokenID                                                           AS Token
-                  ,cte1.fsbtCustomerID                                                                  AS CustomerID
-                  ,cte1.fsbtTokenStatusID                                                               AS StatusID
-                  ,cte1.TokenStatusName                                                                 AS StatusName
-                  ,cte1.fsbtExpirationDate                                                              AS TokenExpirationDate
-                  ,cte1.fsbtInitialAmount                                                               AS InitialAmount
-                  ,CAST(fsbtInitialAmount * euro.rateLast                        as decimal(38,15))     AS InitialAmountEuro
-                  ,cte1.fsbtSportsbookTokenCampaignID                                                   AS CampaignID
-                  ,cte1.fstcCampaignName                                                                AS CampaignName
-                  ,cte1.fsbtCreated                                                                     AS TokenCreated
-                  ,cte1.fsbtLastUpdated                                                                 AS TokenLastUpdated
-                  ,ifnull(cte1.PlayedAmount,0)                                                          AS Stakes
-                  ,CAST(PlayedAmount * euro.rateLast                             as decimal(38,6))      AS StakesEuro
-                  ,ifnull(cw.freebet_winnings,0)                                                        AS FreebetWinnings
-                  ,ifnull(cw.freebet_winningsEuro,0)                                                    AS FreebetWinningsEuro
-                  ,ifnull(cw.fullbet_winnings,0)                                                        AS FullbetWinnings
-                  ,ifnull(cw.fullbet_winningsEuro,0)                                                    AS FullbetWinningsEuro
-                  ,cte1.fstcCampaignTypeID                                                              AS CampaignTypeID
-  FROM       cte1                               
-  LEFT JOIN  cte_winnings                       AS cw   on  cte1.fsbtSportsbookTokenID      = cw.fsbtSportsbookTokenID
+  select           cte1.fsbtSportsbookTokenID                                                           as Token
+                  ,cte1.fsbtCustomerID                                                                  as CustomerID
+                  ,cte1.fsbtTokenStatusID                                                               as StatusID
+                  ,cte1.TokenStatusName                                                                 as StatusName
+                  ,cte1.fsbtExpirationDate                                                              as TokenExpirationDate
+                  ,cte1.fsbtInitialAmount                                                               as InitialAmount
+                  ,cast(fsbtInitialAmount * euro.rateLast                        as decimal(38,15))     as InitialAmountEuro
+                  ,cte1.fsbtSportsbookTokenCampaignID                                                   as CampaignID
+                  ,cte1.fstcCampaignName                                                                as CampaignName
+                  ,cte1.fsbtCreated                                                                     as TokenCreated
+                  ,cte1.fsbtLastUpdated                                                                 as TokenLastUpdated
+                  ,ifnull(cte1.PlayedAmount,0)                                                          as Stakes
+                  ,cast(PlayedAmount * euro.rateLast                             as decimal(38,6))      as StakesEuro
+                  ,ifnull(cw.freebet_winnings,0)                                                        as FreebetWinnings
+                  ,ifnull(cw.freebet_winningsEuro,0)                                                    as FreebetWinningsEuro
+                  ,ifnull(cw.fullbet_winnings,0)                                                        as FullbetWinnings
+                  ,ifnull(cw.fullbet_winningsEuro,0)                                                    as FullbetWinningsEuro
+                  ,cte1.fstcCampaignTypeID                                                              as CampaignTypeID
+  from       cte1                               
+  LEFT JOIN  cte_winnings                       as cw   on  cte1.fsbtSportsbookTokenID      = cw.fsbtSportsbookTokenID
                                                         and cte1.fsbtCustomerID             = cw.fsbtCustomerID
-  LEFT JOIN de.masterconfigdb.dim_company_metadata company   ON company.CompanyId              = fstcCompanyID
-  LEFT JOIN de.KAIZEN_WArs.DIM_Exchange_Rate_euro euro       ON company.CurrencyId             = euro.currencyId
-                                                            AND  euro.Date    = cte1.utc_date
+  LEFT JOIN de.masterconfigdb.dim_company_metadata company   on company.CompanyId              = fstcCompanyID
+  LEFT JOIN de.KAIZEN_WArs.DIM_Exchange_Rate_euro euro       on company.CurrencyId             = euro.currencyId
+                                                            and  euro.Date    = cte1.utc_date
