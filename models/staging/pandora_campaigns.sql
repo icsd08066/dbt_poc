@@ -1,3 +1,8 @@
+{{ config(
+    database='de_sbx',
+    schema='dbt_poc'
+) }}
+
 select fstc.fstcCampaignID                                                                       as CampaignID
       ,fstc.fstcCampaignName                                                                     as CampaignName
       ,fstc.fstcStartTime                                                                        as CampaignStartTime

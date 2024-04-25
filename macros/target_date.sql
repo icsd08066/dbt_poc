@@ -1,3 +1,5 @@
+{%macro target_date()%}
+
 with max_dates as (
     select
         max(utc_date) AS max_stored_date,
@@ -11,3 +13,5 @@ select
         else max_stored_date
     end as target_date
 FROM max_dates
+
+{% endmacro %}
