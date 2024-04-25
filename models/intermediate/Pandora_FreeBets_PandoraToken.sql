@@ -1,10 +1,24 @@
 -- Use overwrite load strategy
 {{ config(
     materialized='incremental',
-    file_format='delta'
+    file_format='delta',
+    database='de_sbx',
+    schema='dbt_poc'
 ) }}
 
-with cte1 as (
+with part_prun as (
+    SELECT  DISTINCT fsbt.utc_date
+    FROM       {{ source('pandoradb', 'fSportsbookToken') }}             AS fsbt
+    INNER JOIN {{ source('pandoradb', 'fSportsbookTokenCampaign') }}    AS fstc ON  fstcCampaignID = fsbtSportsbookTokenCampaignID
+    WHERE  ((       fstcCampaignTypeID                  = 1
+          AND   fsbtSportsbookTokenID               >= 20000000
+          AND   fsbtSportsbookTokenCampaignID       >= 10000
+        )
+        or  (fstcCampaignTypeID                  = 2 ))    
+        AND ifnull(fsbtLastUpdated,fsbtCreated) >= ({{ target_date() }})
+)
+
+,cte1 as (
 select fsbtSportsbookTokenID
       ,fsbtCustomerID
       ,fsbtTokenStatusID
@@ -22,6 +36,7 @@ select fsbtSportsbookTokenID
       ,fsts.comp_part
 from       de.PandoraDB.fSportsbookToken             as fsts
 inner join de.PandoraDB.fSportsbookTokenCampaign     as fstc on fstc.fstcCampaignID		= fsts.fsbtSportsbookTokenCampaignID and fstc.comp_part = fsts.comp_part
+inner join part_prun as prun on prun.utc_date = fsts.utc_date
 left join  de.PandoraDB.fSportsbookTokenTransaction  as fstt on fsts.fsbtSportsbookTokenID = fstt.fsttSportsbookTokenID         and fsts.comp_part = fstt.comp_part
 left join  de.PandoraDB.mSportsbookTokenStatus       as msts on fsts.fsbtTokenStatusID     = msts.mstsTokenStatusID
 where 
@@ -34,8 +49,7 @@ where
     )
     OR    fstcCampaignTypeID                             = 2         -- freebets
 )
-and ifnull(fsts.fsbtLastUpdated,fsts.fsbtCreated) >= (select * from {{ ref('target_date') }} )
-and fsts.utc_date in (select * from {{ ref('partitionPruningDatesfSportsbookToken') }})   
+and ifnull(fsts.fsbtLastUpdated,fsts.fsbtCreated) >= ({{ target_date() }})
 group by  fsbtSportsbookTokenID
         ,   fsbtCustomerID
         ,   fsbtTokenStatusID
@@ -110,4 +124,4 @@ group by  fsbtSportsbookTokenID
                                                         and cte1.fsbtCustomerID             = cw.fsbtCustomerID
   LEFT JOIN de.masterconfigdb.dim_company_metadata company   ON company.CompanyId              = fstcCompanyID
   LEFT JOIN de.KAIZEN_WArs.DIM_Exchange_Rate_euro euro       ON company.CurrencyId             = euro.currencyId
-                                                          AND  euro.Date               = cte1.utc_date
+                                                            AND  euro.Date    = cte1.utc_date

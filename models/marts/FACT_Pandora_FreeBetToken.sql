@@ -3,7 +3,9 @@
     file_format='delta',
     partition_by=['utc_date'],
     unique_key="FreebetToken||'-'||FreebetCustomerID",
-    incremental_strategy='merge'
+    incremental_strategy='merge',
+    database='de_sbx', 
+    schema='dbt_poc'
 ) }}
 
 

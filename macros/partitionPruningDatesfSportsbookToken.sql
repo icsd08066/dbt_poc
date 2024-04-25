@@ -1,5 +1,6 @@
+{%macro partitionPruningDatesfSportsbookToken()%}
 
-SELECT DISTINCT fsbt.utc_date 
+SELECT      DISTINCT fsbt.utc_date
 FROM       {{ source('pandoradb', 'fSportsbookToken') }}             AS fsbt
 INNER JOIN {{ source('pandoradb', 'fSportsbookTokenCampaign') }}    AS fstc ON  fstcCampaignID = fsbtSportsbookTokenCampaignID
 WHERE  ((       fstcCampaignTypeID                  = 1
@@ -7,4 +8,6 @@ WHERE  ((       fstcCampaignTypeID                  = 1
           AND   fsbtSportsbookTokenCampaignID       >= 10000
         )
         or  (fstcCampaignTypeID                  = 2 ))    
-        AND ifnull(fsbtLastUpdated,fsbtCreated) >= (select * from {{ ref('target_date') }} )
+        AND ifnull(fsbtLastUpdated,fsbtCreated) >= ({{ target_date() }})
+
+{% endmacro %}
