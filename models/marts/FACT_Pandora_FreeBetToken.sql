@@ -1,7 +1,9 @@
 {{ config(
     materialized='incremental',
     partition_by=['utc_date'],
-    file_format='delta'
+    file_format='delta',
+    unique_key="FreebetToken||'-'||FreebetCustomerID",
+    incremental_strategy='merge'
 ) }}
 
 
