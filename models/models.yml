@@ -1,0 +1,10 @@
+models:
+  - name: pandora_campaigns
+    description: "This is a view that holds all pandora campaigns regarding freebets and fullbets"
+    columns:
+      - name: CampaignID
+        description: "This is the pandora campaign id"
+    tests:
+      - unique:
+          tags: ["fSportsbookTokenCampaign.fstcCampaignID"]
+      - not_null
