@@ -1,9 +1,7 @@
 -- Use overwrite load strategy
 {{ config(
     materialized='incremental',
-    file_format='delta',
-    database='de_sbx',
-    schema='dbt_poc'
+    file_format='delta'
 ) }}
 
 with part_prun as (

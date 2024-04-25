@@ -3,9 +3,7 @@
     file_format='delta',
     partition_by=['utc_date'],
     unique_key="FreebetToken||'-'||FreebetCustomerID",
-    incremental_strategy='merge',
-    database='de_sbx', 
-    schema='dbt_poc'
+    incremental_strategy='merge'
 ) }}
 
 
@@ -17,7 +15,7 @@ select   Token                  as FreebetToken
        , InitialAmount          as FreebetInitialAmount
        , InitialAmountEuro      as FreebetInitialAmountEuro
        , CampaignID             as FreebetCampaignID   
-       , CampaignName           as FreebetCampaignName  
+       , CampaignName           as FreebetCampaignName
        , TokenCreated           as FreebetTokenCreated     
        , TokenLastUpdated       as FreebetTokenLastUpdated     
        , Stakes                 as FreebetStakes       
