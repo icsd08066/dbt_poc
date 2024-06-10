@@ -1,5 +1,4 @@
 {{ config(
-    materialized='incremental',
     partition_by=['utc_date'],
     file_format='delta'
 ) }}

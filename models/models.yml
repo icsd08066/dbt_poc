@@ -1,10 +1,37 @@
 models:
+### pandora_campaigns ###
   - name: pandora_campaigns
-    description: "This is a view that holds all pandora campaigns regarding freebets and fullbets"
+    description: "The 'pandora_campaigns' view contains data related to marketing campaigns. It includes information such as the campaign ID, name, start and end times, duration, company, budget, status, type, intent, rules, creation and last update timestamps, and amounts in both local currency and Euro. This table is essential for tracking and analyzing the performance of marketing campaigns, understanding their impact on customer behavior, and making data-driven decisions for future campaigns. It provides valuable insights into campaign effectiveness, budget allocation, and overall marketing strategy."
     columns:
       - name: CampaignID
-        description: "This is the pandora campaign id"
+        description: "Unique identifier for each campaign"
         tests:
-          - unique
+          - unique:
+              config:
+                severity: error
+                error_if: ">1000"
+                warn_if: ">10"
           - not_null
+          - relationships:
+              to: source('pandoradb', 'fSportsbookTokenCampaign')
+              field: fstcCampaignID
         tags: ["fSportsbookTokenCampaign.fstcCampaignID"]
+      - name: CampaignName
+        description: "Name of the campaign"
+        tests:
+          - not_null
+        tags: ["fSportsbookTokenCampaign.fstcCampaignName"]
+      - name: CampaignStartTime
+        description: "Start time of the campaign"
+      - name: CampaignEndTime
+        description: "End time of the campaign"
+### DIM_PandoraCampaign_FreeBets ###
+  - name: DIM_PandoraCampaign_FreeBets
+    description: "The dim_pandoracampaign_freebets table contains information about Pandora Freebet campaigns. It includes details such as the campaign ID, name, start time, end time, duration, company, budget, status, type, rules, creation and update timestamps, amount, intent ID, and description. This table is essential for tracking and analyzing campaign performance, budget allocation, and customer engagement. It provides valuable insights into the effectiveness and success of different campaigns run by Pandora. The data in this table is crucial for making informed decisions regarding campaign strategies, budget adjustments, and overall marketing efforts."
+    columns:
+      - name: CampaignAmountEuro
+        description: "Amount spent on the campaign in Euros"
+        tests:
+          - check_sum:
+              id: CampaignID
+              prod: de.kaizen_wars.DIM_PandoraCampaign_FreeBets
