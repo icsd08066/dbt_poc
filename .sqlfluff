@@ -1,0 +1,25 @@
+[sqlfluff]
+dialect = sparksql 
+templater = dbt 
+runaway_limit = 10 
+max_line_length = 100
+indent_unit = tab
+
+[sqlfluff:rules:capitalisation.keywords] 
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.functions] 
+capitalisation_policy = lower
+
+[sqlfluff:indentation]
+indented_using_on = False
+indented_ctes = True
+indented_joins = True
+
+[sqlfluff:layout:type:alias_expression]
+spacing_before = align
+align_within = statement
+align_scope = file
+
+[sqlfluff:rules:L019]
+select_clause_trailing_comma = True
